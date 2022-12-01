@@ -31,5 +31,5 @@ pub fn main() anyerror!void {
 
     }
     std.log.info("Part 1: {d}", .{max_calories[0]}); // 72718
-    std.log.info("Part 2: {d}", .{max_calories[0] + max_calories[1] + max_calories[2]}); // 72718
+    std.log.info("Part 2: {d}", .{max_calories[0] + max_calories[1] + max_calories[2]}); // 213089
 }
