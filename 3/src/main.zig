@@ -17,22 +17,28 @@ pub fn main() anyerror!void {
 
     var count: u32 = 0;
 
-    var line_buffer: [3][]u8 = undefined;
+    var part2_arr = std.ArrayList([]u8).init(allocator);
+    defer part2_arr.deinit();
+
+    var part1_arr = std.ArrayList([]u8).init(allocator);
+    defer part1_arr.deinit();
 
     while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| : (count = (count + 1) % 3) {
-        line_buffer[count] = try allocator.dupe(u8, line);
+        try part2_arr.append(try allocator.dupe(u8, line));
         if (count == 2) {
-            total_part2 += part2(line_buffer);
+            total_part2 += getCommonChar(part2_arr);
+            part2_arr.clearAndFree();
         }
-        total += part1(line);
+        try part1_arr.insertSlice(0, &.{line[0..line.len/2], line[line.len/2..]});
+        total += getCommonChar(part1_arr);
+        part1_arr.clearAndFree();
     }
     
     std.log.info("Part 1: {d}", .{total});
     std.log.info("Part 2: {d}", .{total_part2});
 }
 
-pub fn part2(lines: [3][]u8) u32 {
-
+pub fn getCommonChar(lines: std.ArrayList([]u8)) u32 {
     var char: u8 = 65;
 
     while (char < 123) : (char += 1) {
@@ -40,28 +46,13 @@ pub fn part2(lines: [3][]u8) u32 {
         if (char == 91) {
             char = 97;
         }
-        if (containsChar(lines[0], char) and containsChar(lines[1], char) and containsChar(lines[2], char)) {
-            var char_value = if (char < 91) char-65+27
-                             else char-96;
-            return char_value;
+        var lines_matching: u32 = 0;
+        for (lines.items) |line| {
+            if (containsChar(line, char))
+                lines_matching += 1;
         }
 
-    }
-    return 0;
-}
-
-pub fn part1(line: []u8) u32 {
-    var firsthalf = line[0..line.len/2];
-    var secondhalf = line[line.len/2..];
-
-    var char: u8 = 65;
-
-    while (char < 123) : (char += 1) {
-
-        if (char == 91) {
-            char = 97;
-        }
-        if (containsChar(firsthalf, char) and containsChar(secondhalf, char)) {
+        if (lines_matching == lines.items.len) {
             var char_value = if (char < 91) char-65+27
                              else char-96;
             return char_value;
