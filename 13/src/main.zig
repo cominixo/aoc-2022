@@ -64,19 +64,15 @@ fn compare(left: []const u8, right: []const u8) !?bool {
     var parsed_right = try parse_list(right);
 
     if (parsed_left.items.len == 1 and parsed_right.items.len == 1) {
-        // it's 3am, this if is not getting any better
-        if (!std.mem.containsAtLeast(u8, parsed_left.items[0], 1, "]") and !std.mem.containsAtLeast(u8, parsed_left.items[0], 1, "[")
-            and !std.mem.containsAtLeast(u8, parsed_right.items[0], 1, "]") and !std.mem.containsAtLeast(u8, parsed_right.items[0], 1, "[")
-            and parsed_left.items[0].len > 0 and parsed_right.items[0].len > 0) {
-            var leftint = try std.fmt.parseInt(u32, parsed_left.items[0], 10);
-            var rightint = try std.fmt.parseInt(u32, parsed_right.items[0], 10);
-
-            if (leftint == rightint) {
-                return null;
-            } else {
-                return leftint < rightint;  
-            }
-        }
+        if (std.fmt.parseInt(u32, parsed_left.items[0], 10)) |leftint| {
+            if (std.fmt.parseInt(u32, parsed_right.items[0], 10)) |rightint| {
+                if (leftint == rightint) {
+                    return null;
+                } else {
+                    return leftint < rightint;  
+                }
+            } else |_| {}
+        } else |_| {}
     }
 
     var index: usize = 0;
@@ -96,6 +92,13 @@ fn compare(left: []const u8, right: []const u8) !?bool {
 fn lessthan(context: void, left: []const u8, right: []const u8) bool {
     _ = context;
     return (compare(left, right) catch unreachable).?;
+}
+
+fn isInt(string: []u8) bool {
+    for (string) |char| {
+        if (!std.ascii.isDigit(char)) return false;
+    }
+    return true;
 }
 
 fn parse_list(list: []const u8) !std.ArrayList([]u8) {
